@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://api.github.com https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digimarket · Administración</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a2687">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="tienda.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+
+<!-- ===== ACCESO ===== -->
+<div class="acceso" id="acceso">
+  <form class="acceso-caja" id="formAcceso">
+    <img src="logo.png" alt="Venejugos" width="150">
+    <h1>Panel de administración</h1>
+    <p>Digimarket · escribe la clave de tu fase:<br><strong>Inventario</strong> (precios, stock, promociones) o <strong>Visuales</strong> (fotos y banners)</p>
+    <label class="sr-only" for="clave">Clave</label>
+    <input type="password" id="clave" placeholder="Clave" autocomplete="current-password" autocapitalize="characters" required>
+    <button class="btn btn-primario" type="submit">Entrar</button>
+    <div class="error" id="errorAcceso" role="alert"></div>
+  </form>
+</div>
+
+<!-- ===== PANEL ===== -->
+<div id="panel" hidden>
+  <header class="adm-nav">
+    <div class="adm-nav-fila">
+      <a class="marca" href="./" target="_blank" rel="noopener" title="Abrir el catálogo público">
+        <span class="marca-logo"><img src="logo.png" alt="Venejugos" width="56" height="38"></span>
+        <span class="marca-texto"><strong>Digimarket</strong><span>Administración</span></span>
+      </a>
+      <div class="estado-cambios" id="estadoCambios" aria-live="polite">Sin cambios</div>
+      <div class="adm-nav-acciones">
+        <span class="rol-pill" id="rolActual"></span>
+        <button class="btn btn-claro" id="btnSalir">Salir</button>
+        <button class="btn btn-claro" id="btnDeshacer" title="Descartar cambios no publicados" hidden>Descartar</button>
+        <button class="btn btn-primario" id="btnPublicar">Publicar cambios</button>
+      </div>
+    </div>
+    <nav class="pestanas" role="tablist" aria-label="Secciones">
+      <button role="tab" class="pestana" data-tab="fotos" aria-selected="false" hidden>Fotos de productos</button>
+      <button role="tab" class="pestana" data-tab="productos" aria-selected="true">Productos</button>
+      <button role="tab" class="pestana" data-tab="promociones" aria-selected="false">Promociones del mes</button>
+      <button role="tab" class="pestana" data-tab="importar" aria-selected="false">Importar Excel</button>
+      <button role="tab" class="pestana" data-tab="imagenes" aria-selected="false" hidden>Fotos en lote</button>
+      <button role="tab" class="pestana" data-tab="banners" aria-selected="false" hidden>Banners de promociones</button>
+      <button role="tab" class="pestana" data-tab="conexion" aria-selected="false">Conexión y respaldo</button>
+    </nav>
+  </header>
+
+  <main class="adm-main">
+    <div class="aviso-borrador" id="avisoBorrador" hidden></div>
+
+    <!-- FASE VISUALES: FOTOS POR PRODUCTO -->
+    <section class="tab" id="tab-fotos" role="tabpanel" hidden>
+      <div class="kpis" id="kpisFotos"></div>
+      <div class="adm-barra">
+        <input type="search" id="ffBuscar" placeholder="Buscar por nombre, marca, código o ID" aria-label="Buscar productos">
+        <select id="ffCategoria" aria-label="Categoría"></select>
+        <select id="ffFiltro" aria-label="Filtro">
+          <option value="">Todos</option>
+          <option value="sin-foto">Sin foto</option>
+          <option value="con-foto">Con foto</option>
+          <option value="pendientes">Sin publicar</option>
+        </select>
+      </div>
+      <p class="nota">Toca una tarjeta o arrastra una imagen encima para poner la foto principal. “Galería” permite varias fotos por producto. Los productos sin foto aparecen primero.</p>
+      <div class="grid-fotos" id="gridFotos"></div>
+      <div class="adm-pie-tabla"><span id="infoFotos"></span><nav class="paginacion" id="pagFotos" aria-label="Páginas"></nav></div>
+    </section>
+
+    <!-- FASE VISUALES: BANNERS -->
+    <section class="tab" id="tab-banners" role="tabpanel" hidden>
+      <div class="tarjeta-adm">
+        <h2>Banners de promociones</h2>
+        <p class="nota">Las promociones (fechas, descuentos y productos) las crea la fase Inventario. Aquí se carga la imagen de cada una. Si una promoción no tiene imagen, el catálogo muestra un banner de texto con los colores de la marca.</p>
+        <div id="listaBanners" class="lista-promos"></div>
+      </div>
+    </section>
+
+    <!-- PRODUCTOS -->
+    <section class="tab" id="tab-productos" role="tabpanel">
+      <div class="kpis" id="kpis"></div>
+      <div class="adm-barra">
+        <input type="search" id="fBuscar" placeholder="Buscar por nombre, marca, código o ID" aria-label="Buscar productos">
+        <select id="fCategoria" aria-label="Categoría"></select>
+        <select id="fMarca" aria-label="Marca"></select>
+        <select id="fModulo" aria-label="Módulo"></select>
+        <select id="fRapido" aria-label="Filtro rápido">
+          <option value="">Todos</option>
+          <option value="sin-imagen">Sin foto</option>
+          <option value="con-descuento">Con descuento</option>
+          <option value="stock-bajo">Stock bajo</option>
+          <option value="agotados">Agotados</option>
+          <option value="destacados">Destacados</option>
+          <option value="sin-codigo">Sin código</option>
+          <option value="precio-cero">Precio en 0</option>
+          <option value="problemas">Con problemas</option>
+        </select>
+        <select id="fOrden" aria-label="Ordenar">
+          <option value="producto-asc">Nombre A-Z</option>
+          <option value="producto-desc">Nombre Z-A</option>
+          <option value="precio-asc">Precio ↑</option>
+          <option value="precio-desc">Precio ↓</option>
+          <option value="stock-asc">Stock ↑</option>
+          <option value="stock-desc">Stock ↓</option>
+          <option value="descuento-desc">Descuento ↓</option>
+          <option value="id-desc">Más recientes</option>
+        </select>
+        <button class="btn btn-azul" id="btnNuevo">+ Nuevo producto</button>
+      </div>
+
+      <div class="lote" id="barraLote" hidden>
+        <strong id="numSel">0 seleccionados</strong>
+        <div class="lote-grupo"><input type="text" inputmode="decimal" id="loteDesc" placeholder="% desc." aria-label="Descuento en lote"><button class="btn btn-mini" data-lote="descuento">Aplicar descuento</button></div>
+        <div class="lote-grupo"><select id="loteCat" aria-label="Categoría en lote"></select><button class="btn btn-mini" data-lote="categoria">Cambiar categoría</button></div>
+        <div class="lote-grupo"><select id="lotePromo" aria-label="Promoción"></select><button class="btn btn-mini" data-lote="promo">Añadir a promoción</button></div>
+        <button class="btn btn-mini" data-lote="destacar">Destacar</button>
+        <button class="btn btn-mini" data-lote="no-destacar">Quitar destacado</button>
+        <button class="btn btn-mini btn-peligro" data-lote="eliminar">Eliminar</button>
+        <button class="btn btn-mini btn-claro" data-lote="limpiar">Deseleccionar</button>
+      </div>
+
+      <div class="tabla" id="tablaProductos" role="table" aria-label="Productos">
+        <div class="fila cab" role="row">
+          <span class="c-sel"><input type="checkbox" id="selTodos" aria-label="Seleccionar página"></span>
+          <span class="c-img">Foto</span>
+          <span class="c-cod">Código</span>
+          <span class="c-nom">Producto</span>
+          <span class="c-mar">Marca</span>
+          <span class="c-cat">Categoría</span>
+          <span class="c-pre num">Precio</span>
+          <span class="c-des num">Desc. %</span>
+          <span class="c-fin num">Final</span>
+          <span class="c-sto num">Stock</span>
+          <span class="c-dst">Dest.</span>
+          <span class="c-acc"></span>
+        </div>
+        <div id="filasProductos"></div>
+      </div>
+      <div class="adm-pie-tabla">
+        <span id="infoTabla"></span>
+        <nav class="paginacion" id="pagProductos" aria-label="Páginas"></nav>
+      </div>
+    </section>
+
+    <!-- PROMOCIONES -->
+    <section class="tab" id="tab-promociones" role="tabpanel" hidden>
+      <div class="tarjeta-adm">
+        <div class="cab-adm">
+          <div>
+            <h2>Promociones del mes</h2>
+            <p class="nota">Cada promoción aparece como banner en el catálogo mientras esté activa y dentro de sus fechas. Si tiene un % de descuento, se aplica a sus productos (cuando un producto también tiene descuento propio, se usa el mayor).</p>
+          </div>
+          <div class="botones">
+            <button class="btn btn-azul" id="btnPromoMes">+ Promoción de este mes</button>
+            <button class="btn" id="btnPromoNueva">+ Otra fecha</button>
+          </div>
+        </div>
+        <div id="listaPromos" class="lista-promos"></div>
+      </div>
+
+      <div class="tarjeta-adm">
+        <h2>Cargar descuentos del mes desde Excel</h2>
+        <p class="nota">Sube un archivo con una columna de <strong>código</strong>, <strong>ID</strong> o <strong>producto</strong>, y una columna de <strong>descuento</strong> (15, 15% o 0,15). Puedes asignar los descuentos directo a los productos o crear con ellos una promoción.</p>
+        <div class="fila-form">
+          <input type="file" id="excelDescuentos" accept=".xlsx,.xls,.csv">
+          <select id="destinoDescuentos" aria-label="Destino de los descuentos">
+            <option value="producto">Asignar como descuento del producto</option>
+            <option value="promo">Crear una promoción con estos productos</option>
+          </select>
+          <label class="opcion"><input type="checkbox" id="limpiarDescuentos"><span>Quitar el descuento a los productos que no estén en el archivo</span></label>
+        </div>
+        <div id="vistaDescuentos"></div>
+      </div>
+    </section>
+
+    <!-- IMPORTAR -->
+    <section class="tab" id="tab-importar" role="tabpanel" hidden>
+      <div class="tarjeta-adm">
+        <h2>Actualizar productos desde Excel</h2>
+        <p class="nota">Acepta .xlsx, .xls y .csv. Detecta solo las columnas (código, producto/nombre, descripción, marca, categoría, precio, descuento, cantidad/stock, módulo, imagen, ID), aunque el encabezado no esté en la primera fila. Los precios con coma (2,22) se leen correctamente. Cada fila se empareja con el producto existente por <strong>ID</strong>, luego por <strong>código</strong> y luego por <strong>nombre + marca</strong>, así las fotos y promociones no se pierden ni se cruzan.</p>
+        <div class="modos">
+          <label class="modo"><input type="radio" name="modoImport" value="actualizar" checked><span><strong>Actualizar y agregar</strong> Actualiza los que coinciden y agrega los nuevos. No borra nada.</span></label>
+          <label class="modo"><input type="radio" name="modoImport" value="solo-existentes"><span><strong>Solo precios y stock</strong> Actualiza los que coinciden; ignora productos nuevos.</span></label>
+          <label class="modo"><input type="radio" name="modoImport" value="reemplazar"><span><strong>Reemplazar lista completa</strong> Lo que no esté en el archivo se elimina del catálogo.</span></label>
+        </div>
+        <div class="fila-form">
+          <input type="file" id="excelProductos" accept=".xlsx,.xls,.csv">
+          <button class="btn" id="btnExportar">Descargar catálogo actual en Excel</button>
+        </div>
+        <div id="vistaImport"></div>
+      </div>
+    </section>
+
+    <!-- IMÁGENES EN LOTE -->
+    <section class="tab" id="tab-imagenes" role="tabpanel" hidden>
+      <div class="tarjeta-adm">
+        <h2>Fotos en lote</h2>
+        <p class="nota">Nombra cada archivo con el <strong>código</strong>, el <strong>ID</strong> o el <strong>nombre exacto</strong> del producto (por ejemplo <code>7UP-15.jpg</code>, <code>587.png</code> o <code>ACEITE SOYA PORTUMESA 12 X 850 ML.webp</code>). Solo se aceptan coincidencias exactas para no asignar una foto al producto equivocado; las que no coincidan puedes asignarlas a mano. Las fotos se optimizan automáticamente (máx. 900 px, formato WebP).</p>
+        <div class="fila-form">
+          <input type="file" id="lotesFotos" accept="image/*" multiple>
+          <label class="opcion"><input type="checkbox" id="fotosComoGaleria"><span>Si el producto ya tiene foto, agregar a su galería en vez de reemplazarla</span></label>
+        </div>
+        <div id="vistaFotos"></div>
+      </div>
+    </section>
+
+    <!-- CONEXIÓN -->
+    <section class="tab" id="tab-conexion" role="tabpanel" hidden>
+      <div class="tarjeta-adm">
+        <h2>Conexión con GitHub</h2>
+        <p class="nota">Con estos datos el panel publica los cambios directamente en tu repositorio. Usa un token <em>fine-grained</em> limitado a este repositorio con permiso <strong>Contents: Read and write</strong>.</p>
+        <div class="form-grid">
+          <label class="campo"><span>Usuario u organización</span><input id="cfgOwner" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+          <label class="campo"><span>Repositorio</span><input id="cfgRepo" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+          <label class="campo"><span>Rama</span><input id="cfgBranch" value="main" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+          <label class="campo"><span>Carpeta del sitio en el repo (vacío = raíz)</span><input id="cfgCarpeta" placeholder="" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+          <label class="campo ancho"><span>Token de acceso</span><input id="cfgToken" type="password" placeholder="github_pat_…" autocomplete="off" spellcheck="false"></label>
+        </div>
+        <label class="opcion"><input type="checkbox" id="cfgRecordar"><span>Recordar el token en este dispositivo (si no, se borra al cerrar la pestaña)</span></label>
+        <div class="botones" style="margin-top:12px">
+          <button class="btn btn-azul" id="btnGuardarCfg">Guardar y probar conexión</button>
+          <button class="btn" id="btnRecargarGH">Recargar datos desde GitHub</button>
+        </div>
+        <div id="resultadoCfg" class="nota" style="margin-top:10px"></div>
+      </div>
+
+      <div class="tarjeta-adm">
+        <h2>Respaldo</h2>
+        <p class="nota">Descarga una copia de productos y promociones antes de cambios grandes. La fase Inventario puede restaurarla aquí mismo (queda como cambio sin publicar).</p>
+        <div class="botones">
+          <button class="btn" id="btnRespaldo">Descargar respaldo (.json)</button>
+          <label class="btn solo-inventario" for="archivoRespaldo" style="display:inline-grid;place-items:center">Restaurar respaldo…</label>
+          <input type="file" id="archivoRespaldo" accept=".json,application/json" hidden>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="pie-admin">
+    <span>© 2026 <span data-legal="empresa.razon">DISTRIBUIDORA VENEJUGOS 2015, C.A.</span></span>
+    <a href="terminos.html" target="_blank" rel="noopener">Términos</a>
+    <a href="privacidad.html" target="_blank" rel="noopener">Privacidad</a>
+    <a href="cookies.html" target="_blank" rel="noopener">Cookies</a>
+    <a href="#" data-retirar-consentimiento>Retirar mi consentimiento</a>
+  </footer>
+</div>
+
+<div class="velo" id="velo"></div>
+
+<!-- Editor de producto -->
+<aside class="hoja" id="hojaProducto" role="dialog" aria-modal="true" aria-labelledby="tProducto">
+  <div class="asa"></div>
+  <div class="hoja-cab"><h2 id="tProducto">Producto</h2><button class="btn-cerrar" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="hoja-cuerpo" id="formProducto"></div>
+  <div class="hoja-pie botones"><button class="btn" data-cerrar>Cancelar</button><button class="btn btn-primario" id="guardarProducto">Guardar</button></div>
+</aside>
+
+<!-- Editor de promoción -->
+<aside class="hoja" id="hojaPromo" role="dialog" aria-modal="true" aria-labelledby="tPromo">
+  <div class="asa"></div>
+  <div class="hoja-cab"><h2 id="tPromo">Promoción</h2><button class="btn-cerrar" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="hoja-cuerpo" id="formPromo"></div>
+  <div class="hoja-pie botones"><button class="btn" data-cerrar>Cancelar</button><button class="btn btn-primario" id="guardarPromo">Guardar promoción</button></div>
+</aside>
+
+<!-- Publicación -->
+<aside class="hoja centro" id="hojaPublicar" role="dialog" aria-modal="true" aria-labelledby="tPublicar">
+  <div class="hoja-cab"><h2 id="tPublicar">Publicar cambios</h2><button class="btn-cerrar" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="hoja-cuerpo" id="cuerpoPublicar"></div>
+  <div class="hoja-pie botones" id="piePublicar"></div>
+</aside>
+
+<input type="file" id="fotoRapida" accept="image/*" hidden>
+<div class="aviso-flotante" id="avisoFlotante" role="status" aria-live="polite"></div>
+
+<script src="xlsx.full.min.js" defer></script>
+<script src="legal.js"></script>
+<script src="consentimiento.js"></script>
+<script src="comun.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

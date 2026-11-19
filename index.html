@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Digimarket · Catálogo y promociones</title>
+<meta name="description" content="Catálogo de productos Digimarket con precios, disponibilidad y promociones del mes.">
+<meta name="theme-color" content="#0a2687">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="icono.png">
+<link rel="preload" href="bricolage.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="hanken.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="tienda.css">
+</head>
+<body class="entra">
+<a class="saltar" href="#catalogo">Saltar al catálogo</a>
+
+<header class="nav">
+  <div class="contenedor nav-fila">
+    <a class="marca" href="./" aria-label="Digimarket, inicio">
+      <span class="marca-logo"><img src="logo.png" alt="Venejugos" width="56" height="38"></span>
+      <span class="marca-texto"><strong id="nombreTienda">Digimarket</strong><span id="sloganTienda">Tu comida en la puerta de tu casa</span></span>
+    </a>
+
+    <form class="buscador" id="formBuscar" role="search">
+      <label class="sr-only" for="buscarCategoria">Categoría</label>
+      <select id="buscarCategoria"><option value="">Todo</option></select>
+      <label class="sr-only" for="buscar">Buscar productos</label>
+      <input id="buscar" type="search" placeholder="¿Qué estás buscando?" autocomplete="off" enterkeyhint="search">
+      <button type="submit" aria-label="Buscar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </button>
+    </form>
+
+    <button class="btn-carrito" id="abrirCarrito" aria-label="Abrir mi pedido">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.7a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>
+      <span class="contador" id="contadorCarrito" hidden>0</span>
+      <span class="txt">Mi pedido</span>
+    </button>
+  </div>
+  <nav class="subnav" aria-label="Categorías">
+    <div class="contenedor subnav-pista" id="barraCategorias"></div>
+  </nav>
+</header>
+<svg class="cinta" viewBox="0 0 1280 60" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="metal-plata" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset=".22" stop-color="#c3cde2"/><stop offset=".45" stop-color="#ffffff"/><stop offset=".7" stop-color="#a9b6cf"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+      <linearGradient id="metal-rojo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1280" y2="0"><stop offset="0" stop-color="#ff5a6e"/><stop offset=".25" stop-color="#e2001a"/><stop offset=".5" stop-color="#8f0011"/><stop offset=".75" stop-color="#e2001a"/><stop offset="1" stop-color="#ff4d63"/></linearGradient>
+    </defs>
+    <path class="c-azul" pathLength="1600" d="M8 34 C 260 6, 520 52, 790 28 S 1120 6, 1272 22"/>
+    <path class="c-rojo" pathLength="1600" d="M8 46 C 280 20, 560 60, 820 40 S 1140 22, 1272 34"/>
+  </svg>
+
+<main class="contenedor" id="inicio">
+  <section class="promos" id="seccionPromos" aria-label="Promociones del mes" hidden>
+    <div class="promos-pista" id="pistaPromos"></div>
+    <button class="promos-ctrl prev" id="promoPrev" aria-label="Promoción anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button class="promos-ctrl next" id="promoNext" aria-label="Promoción siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    <div class="promos-puntos" id="puntosPromos"></div>
+  </section>
+
+  <section class="seccion panel-ofertas" id="seccionOfertas" hidden>
+    <div class="seccion-cab">
+      <h2 id="tituloOfertas">Ofertas del mes</h2>
+      <button class="enlace" id="verOfertas">Ver todas</button>
+    </div>
+    <div class="fila-scroll" id="filaOfertas"></div>
+  </section>
+
+  <section class="catalogo" id="catalogo" aria-label="Catálogo de productos">
+    <aside class="filtros" id="filtrosLateral" aria-label="Filtros"></aside>
+    <div>
+      <div class="seccion-cab" style="margin-bottom:8px">
+        <h2 id="tituloListado">Todos los productos</h2>
+      </div>
+      <div class="barra-resultados">
+        <span class="total" id="totalResultados" aria-live="polite">Cargando…</span>
+        <div class="barra-acciones">
+          <button class="btn-filtros" id="abrirFiltros" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Filtros <span class="num" id="numFiltros" hidden>0</span>
+          </button>
+          <label class="sr-only" for="orden">Ordenar por</label>
+          <select class="selector" id="orden">
+            <option value="relevancia">Destacados primero</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="descuento-desc">Mayor descuento</option>
+            <option value="producto-asc">Nombre: A-Z</option>
+            <option value="producto-desc">Nombre: Z-A</option>
+            <option value="stock-desc">Más disponibles</option>
+          </select>
+        </div>
+      </div>
+      <div class="chips-activos" id="chipsActivos"></div>
+      <div class="grid" id="grid" aria-busy="true"></div>
+      <nav class="paginacion" id="paginacion" aria-label="Páginas"></nav>
+    </div>
+  </section>
+</main>
+
+<footer class="pie">
+  <div class="contenedor pie-fila">
+    <div><strong id="pieNombre">Digimarket</strong> · <span id="pieSlogan">Tu comida en la puerta de tu casa</span><br>Precios en USD · Actualizado: <strong id="actualizado">—</strong> · <span id="totalProductos">0</span> productos</div>
+    <nav class="pie-legal" aria-label="Documentos legales">
+      <a href="terminos.html">Términos y condiciones</a>
+      <a href="privacidad.html">Política de privacidad</a>
+      <a href="cookies.html">Política de cookies</a>
+      <a href="#" data-retirar-consentimiento>Retirar mi consentimiento</a>
+    </nav>
+    <div>© 2026 <span data-legal="empresa.razon">DISTRIBUIDORA VENEJUGOS 2015, C.A.</span> · RIF <span data-legal="empresa.rif">J-29941545-6</span></div>
+  </div>
+</footer>
+
+<div class="velo" id="velo"></div>
+
+<!-- Hoja de filtros (móvil / tableta) -->
+<aside class="hoja izquierda" id="hojaFiltros" role="dialog" aria-modal="true" aria-labelledby="tFiltros">
+  <div class="asa"></div>
+  <div class="hoja-cab"><h2 id="tFiltros">Filtros</h2><button class="btn-cerrar" data-cerrar aria-label="Cerrar filtros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="hoja-cuerpo" id="filtrosHoja"></div>
+  <div class="hoja-pie"><button class="btn btn-azul" style="width:100%" data-cerrar id="verResultados">Ver resultados</button></div>
+</aside>
+
+<!-- Detalle de producto -->
+<aside class="hoja centro" id="hojaDetalle" role="dialog" aria-modal="true" aria-labelledby="tDetalle">
+  <div class="asa"></div>
+  <div class="hoja-cab"><h2 id="tDetalle">Detalle del producto</h2><button class="btn-cerrar" data-cerrar aria-label="Cerrar detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="hoja-cuerpo" id="contenidoDetalle"></div>
+</aside>
+
+<!-- Carrito / Mi pedido -->
+<aside class="hoja" id="hojaCarrito" role="dialog" aria-modal="true" aria-labelledby="tCarrito">
+  <div class="asa"></div>
+  <div class="hoja-cab"><h2 id="tCarrito">Mi pedido</h2><button class="btn-cerrar" data-cerrar aria-label="Cerrar pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="hoja-cuerpo" id="contenidoCarrito"></div>
+  <div class="hoja-pie" id="pieCarrito"></div>
+</aside>
+
+<div class="pedido-captura" id="pedidoCaptura" aria-hidden="true"></div>
+<div class="aviso-flotante" id="avisoFlotante" role="status" aria-live="polite"></div>
+
+<script src="html2canvas.min.js" defer></script>
+<script src="legal.js"></script>
+<script src="consentimiento.js"></script>
+<script src="comun.js"></script>
+<script src="tienda.js"></script>
+</body>
+</html>
